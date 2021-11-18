@@ -49,10 +49,6 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	// 战斗状态，T为战斗态，F为普通态
-	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Fight)
-	// bool bFightState;
-
 	// 战斗状态使用动画资产
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Fight)
 	class TSubclassOf<UAnimInstance> FightAnimClass;

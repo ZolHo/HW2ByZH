@@ -371,6 +371,9 @@ void AHW2ByZHCharacter::RightClickDispatch()
 	case FightState::GUNMODE:
 		// 切换开镜状态
 		bIsOpenMirror = !bIsOpenMirror;
+		// 切换相机视角
+		FollowCamera2->SetFieldOfView(90.f+45.f - FollowCamera2->FieldOfView);
+		
 		break;
 	
 	case FightState::LEIMODE:
