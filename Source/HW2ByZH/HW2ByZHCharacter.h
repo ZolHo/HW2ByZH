@@ -15,6 +15,8 @@ enum class FightState:uint8
 	LEIMODE UMETA(DisplayName = "持雷")
 };
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangeStateDelegate);
+
 UCLASS(config=Game)
 class AHW2ByZHCharacter : public ACharacter
 {
@@ -27,6 +29,15 @@ class AHW2ByZHCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+	
+	// 另一个CameraBoom
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class USpringArmComponent* CameraBoom2;
+	// 另一个摄像机
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* FollowCamera2;
+	
+	
 public:
 	AHW2ByZHCharacter();
 
@@ -39,8 +50,8 @@ public:
 	float BaseLookUpRate;
 
 	// 战斗状态，T为战斗态，F为普通态
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Fight)
-	bool bFightState;
+	// UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Fight)
+	// bool bFightState;
 
 	// 战斗状态使用动画资产
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Fight)
@@ -50,19 +61,39 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Fight)
 	class TSubclassOf<UAnimInstance> NormalAnimClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Fight)
+	bool bIsOpenMirror = false;
+
 	// 正在装备的武器
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
 	AEquipActor* EquippedWeapon;
 	
 	// 由EquipActor自动维护的进入拾取范围的武器
-	UPROPERTY(VisibleAnywhere, BlueprintReadWrite)
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category=Weapon)
 	TSet<AEquipActor*> WeaponWhichCanPickSet;
+	
+	/** AnimMontage to play each time we fire */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UAnimMontage* FireAnimation_Hip;
+	
+	/** AnimMontage to play each time we fire */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UAnimMontage* FireAnimation_Aim;
+
+	/** Sound to play each time we fire */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
+	USoundBase* FireSound;
+
+	
+	// 变换战斗状态代理，把一些处理交给蓝图及关卡蓝图等
+	UPROPERTY(BlueprintAssignable)
+	FChangeStateDelegate ChangeStateDelegate;
 
 protected:
 
 	// 战斗状态
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=FightState)
-	FightState FightState = FightState::OutFight;
+	FightState NowFightState = FightState::OutFight;
 
 	/** Resets HMD orientation in VR. */
 	void OnResetVR();
@@ -93,6 +124,12 @@ protected:
 	
 	// 切换战斗态
 	void SwitchFightState(enum FightState ChangeFightState);
+
+	// 鼠标点击左键事件处理
+	void LeftClickDispatch() ;
+
+	// 鼠标点击右键事件处理
+	void RightClickDispatch();
 	
 	// 按T
 	void Test();

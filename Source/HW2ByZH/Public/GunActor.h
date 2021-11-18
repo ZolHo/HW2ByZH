@@ -17,6 +17,9 @@ public:
 	// Sets default values for this actor's properties
 	AGunActor();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Amor)
+	int AmorNumber = 10;
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;

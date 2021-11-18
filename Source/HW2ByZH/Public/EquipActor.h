@@ -23,6 +23,10 @@ public:
 	// 提示文本组件
 	class UTextRenderComponent* HintTextRenderComponent;
 
+	// Box Collision
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Mesh)
+	class UBoxComponent* BoxCollision;
+	
 	//获取Mesh
 	virtual UMeshComponent* GetWeaponMesh();
 	
@@ -36,9 +40,6 @@ protected:
 	UPROPERTY(EditAnywhere,BlueprintReadWrite, Category=Mesh)
 	class UMeshComponent* WeaponMesh;
 
-	// Box Collision
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Mesh)
-	class UBoxComponent* BoxCollision;
 
 public:	
 	// Called every frame
