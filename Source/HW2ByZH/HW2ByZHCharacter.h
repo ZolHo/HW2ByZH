@@ -4,6 +4,8 @@
 
 #include "CoreMinimal.h"
 #include "EquipActor.h"
+#include "GunActor.h"
+#include "LeiActor.h"
 #include "GameFramework/Character.h"
 #include "HW2ByZHCharacter.generated.h"
 
@@ -15,7 +17,11 @@ enum class FightState:uint8
 	LEIMODE UMETA(DisplayName = "持雷")
 };
 
+// 战斗状态切换时候的代理
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FChangeStateDelegate);
+
+// 子弹数目会出现变化的时候，通知给UMG更改UI
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnAmorNumerChangeDelegate);
 
 UCLASS(config=Game)
 class AHW2ByZHCharacter : public ACharacter
@@ -49,15 +55,16 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseLookUpRate;
 
-	// 战斗状态使用动画资产
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Fight)
-	class TSubclassOf<UAnimInstance> FightAnimClass;
+	// // 战斗状态使用动画资产
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Fight)
+	// class TSubclassOf<UAnimInstance> FightAnimClass;
+	//
+	// // 非战斗状态使用动画资产
+	// UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Fight)
+	// class TSubclassOf<UAnimInstance> NormalAnimClass;
 
-	// 非战斗状态使用动画资产
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Fight)
-	class TSubclassOf<UAnimInstance> NormalAnimClass;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Fight)
+	// 是否开镜状态
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Fight)
 	bool bIsOpenMirror = false;
 
 	// 正在装备的武器
@@ -80,10 +87,30 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	USoundBase* FireSound;
 
+	// 枪类装备槽
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon)
+	AGunActor* GunWeapon;
+
+	// 雷雷装备槽
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon)
+	ALeiActor* LeiWeapon;
+
+	// 弹孔贴图
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
+	UMaterial* BulletHoleMaterial;
+
+	// 子弹粒子特效
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
+	UParticleSystem* BulletHitParticleSystem;
+
 	
 	// 变换战斗状态代理，把一些处理交给蓝图及关卡蓝图等
 	UPROPERTY(BlueprintAssignable)
 	FChangeStateDelegate ChangeStateDelegate;
+
+	// 子弹变化
+	UPROPERTY(BlueprintAssignable)
+	FOnAmorNumerChangeDelegate OnAmorNumerChangeDelegate;
 
 protected:
 
@@ -126,6 +153,12 @@ protected:
 
 	// 鼠标点击右键事件处理
 	void RightClickDispatch();
+
+	// 鼠标左键松开事件处理
+	void LeftClickReleasedDispatch();
+	
+	// 处理开枪效果
+	void OnGunFire();
 	
 	// 按T
 	void Test();
@@ -133,6 +166,9 @@ protected:
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
+
+	// 切换开镜
+	void ToggleOpenMirror();
 
 public:
 	/** Returns CameraBoom subobject **/
@@ -151,4 +187,8 @@ public:
 	// 丢弃武器
 	UFUNCTION(BlueprintCallable)
 	void DestroyNowWeapon();
+
+	// 装弹函数
+	UFUNCTION(BlueprintCallable)
+	void ReBullet();
 };

@@ -39,3 +39,18 @@ void AGunActor::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 }
+
+void AGunActor::GunReBullet()
+{
+	int diffBullet = GunMagazineLimit - GunAmorNumber;
+	if (diffBullet <= MagazineAmorNumber)
+	{
+		MagazineAmorNumber -= diffBullet;
+		GunAmorNumber += diffBullet;
+	}
+	else
+	{
+		GunAmorNumber += MagazineAmorNumber;
+		MagazineAmorNumber = 0;
+	}
+}

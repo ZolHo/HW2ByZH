@@ -17,8 +17,21 @@ public:
 	// Sets default values for this actor's properties
 	AGunActor();
 
+	// 枪的弹匣容量
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Amor)
-	int AmorNumber = 10;
+	int GunMagazineLimit = 15;
+
+	// 当前子弹数
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Amor)
+	int GunAmorNumber = 15;
+
+	// 弹舱子弹数目
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Amor)
+	int MagazineAmorNumber = 60;
+
+	// 换弹函数
+	UFUNCTION()
+	void GunReBullet();
 
 protected:
 	// Called when the game starts or when spawned

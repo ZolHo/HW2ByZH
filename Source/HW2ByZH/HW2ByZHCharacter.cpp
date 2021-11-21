@@ -10,15 +10,20 @@
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/DecalComponent.h"
 #include "Components/InputComponent.h"
 #include "Components/TextRenderComponent.h"
+#include "Engine/DecalActor.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetMathLibrary.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AHW2ByZHCharacter
+
+class ADecalActor;
 
 AHW2ByZHCharacter::AHW2ByZHCharacter()
 {
@@ -107,8 +112,13 @@ void AHW2ByZHCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 	// 丢弃武器
 	PlayerInputComponent->BindAction("DropWeapon", IE_Pressed, this, &AHW2ByZHCharacter::DestroyNowWeapon);
 
+	// 绑定鼠标的左右键
 	PlayerInputComponent->BindAction("LeftClick", IE_Pressed,this, &AHW2ByZHCharacter::LeftClickDispatch);
 	PlayerInputComponent->BindAction("RightClick", IE_Pressed, this, &AHW2ByZHCharacter::RightClickDispatch);
+	PlayerInputComponent->BindAction("LeftClick", IE_Released, this, &AHW2ByZHCharacter::LeftClickReleasedDispatch);
+
+	// 绑定换弹函数
+	PlayerInputComponent->BindAction("ReBullet", IE_Pressed, this, &AHW2ByZHCharacter::ReBullet);
 
 	// Test function
 	PlayerInputComponent->BindAction("Test", IE_Pressed, this, &AHW2ByZHCharacter::Test);
@@ -204,6 +214,7 @@ void AHW2ByZHCharacter::SwitchFightState(enum FightState ChangeFightState)
 		break;
 		// 拿枪
 	case FightState::GUNMODE :
+		if (bIsOpenMirror) ToggleOpenMirror();  // 重置开镜状态
 		FollowCamera->ToggleActive();
 		FollowCamera2->ToggleActive();
 		this->bUseControllerRotationYaw = true;
@@ -231,9 +242,12 @@ void AHW2ByZHCharacter::PickUpWeaponByOverlap()
 {
 	if (WeaponWhichCanPickSet.Num()>0)
 	{
-		// 如果附件有武器， 那么随便装一个
+		// 如果附近有武器， 那么随便装一个
 		const auto TempIter = WeaponWhichCanPickSet.CreateConstIterator();
 		PickUpWeapon(*TempIter);
+
+		if (OnAmorNumerChangeDelegate.IsBound())
+			OnAmorNumerChangeDelegate.Broadcast();
 	}
 	else
 	{
@@ -249,18 +263,21 @@ void AHW2ByZHCharacter::PickUpWeapon(AActor* Weapon)
 		if (Weapon->GetClass()->IsChildOf(AEquipActor::StaticClass()))
 		{
 			EquippedWeapon = Cast<AEquipActor>(Weapon);
-			
+			// 如果是枪
 			if (Weapon->GetClass()->IsChildOf(AGunActor::StaticClass()))
 			{
 				AGunActor* GunActor = Cast<AGunActor>(Weapon);
 				GunActor->GetWeaponMesh()->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("Gun_Socket"));
+				GunWeapon = GunActor; // 装备到武器操
 				
 				SwitchFightState(FightState::GUNMODE);
 			}
+			// 如果是雷
 			else if (Weapon->GetClass()->IsChildOf(ALeiActor::StaticClass()))
 			{
 				ALeiActor* LeiActor = Cast<ALeiActor>(Weapon);
 				LeiActor->GetWeaponMesh()->AttachToComponent(GetMesh(), FAttachmentTransformRules::SnapToTargetIncludingScale, TEXT("Lei_Socket"));
+				LeiWeapon = LeiActor; // 装备到武器槽
 				
 				SwitchFightState(FightState::LEIMODE);
 			}
@@ -305,53 +322,9 @@ void AHW2ByZHCharacter::LeftClickDispatch()
 
 	// 持枪模式
 	case FightState::GUNMODE:
-		if (Cast<AGunActor>(EquippedWeapon)->AmorNumber > 0)
+		if (Cast<AGunActor>(EquippedWeapon)->GunAmorNumber > 0)
 		{
-			// 射线检测
-			Cast<AGunActor>(EquippedWeapon)->AmorNumber -= 1;
-			FHitResult HitResult(ForceInit);
-			FVector CamLoc, dir, TraceEnd, TraceStart;
-			FRotator CamRot;
-
-			Controller->GetPlayerViewPoint(CamLoc, CamRot);
-			TraceStart = CamLoc;
-			dir = CamRot.Vector();
-			TraceEnd = CamLoc + (10000 * dir);
-		
-			FCollisionQueryParams TraceParams (FName(TEXT("Actor")), true, this);
-			TraceParams.bReturnPhysicalMaterial = false;
-			TraceParams.AddIgnoredActor(this);
-			TraceParams.AddIgnoredActor(EquippedWeapon);
-
-			DrawDebugLine(this->GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 5.0f);
-			GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd,ECC_Visibility, TraceParams);
-			// UE_LOG(LogTemp, Warning, TEXT("Now State:%s ,%s"), *TraceStart.ToString(), *TraceEnd.ToString());
-			if (Cast<AActor>(HitResult.GetActor()))
-			{
-				GEngine->AddOnScreenDebugMessage(-1, 0.8f, FColor::Blue, HitResult.GetActor()->GetName());
-			}
-
-			// 播放动画
-			if (FireSound != nullptr)
-			{
-				UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
-			}
-			UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
-			if (bIsOpenMirror)
-			{
-				if (FireAnimation_Aim != nullptr && AnimInstance != nullptr)
-				{
-					AnimInstance->Montage_Play(FireAnimation_Aim, 1.f);
-				}
-			}
-			else
-			{
-				if (FireAnimation_Hip!= nullptr && AnimInstance != nullptr)
-				{
-					AnimInstance->Montage_Play(FireAnimation_Hip, 1.f);
-				}
-			}
-			
+			OnGunFire();
 		}
 		
 		break;
@@ -369,10 +342,7 @@ void AHW2ByZHCharacter::RightClickDispatch()
 		break;
 
 	case FightState::GUNMODE:
-		// 切换开镜状态
-		bIsOpenMirror = !bIsOpenMirror;
-		// 切换相机视角
-		FollowCamera2->SetFieldOfView(90.f+45.f - FollowCamera2->FieldOfView);
+		ToggleOpenMirror();
 		
 		break;
 	
@@ -382,4 +352,122 @@ void AHW2ByZHCharacter::RightClickDispatch()
 	default:
 		break;
 	}
+}
+
+
+void AHW2ByZHCharacter::ReBullet()
+{
+	if (GunWeapon)
+	{
+		GunWeapon->GunReBullet();
+		
+		if (OnAmorNumerChangeDelegate.IsBound())
+			OnAmorNumerChangeDelegate.Broadcast();
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("You Have No Gun To ReBullet"));
+	}
+}
+
+void AHW2ByZHCharacter::OnGunFire()
+{
+	// 射线检测
+	Cast<AGunActor>(EquippedWeapon)->GunAmorNumber -= 1;
+	FHitResult HitResult(ForceInit);
+	FVector CamLoc, dir, TraceEnd, TraceStart;
+	FRotator CamRot;
+
+	Controller->GetPlayerViewPoint(CamLoc, CamRot); // 获取摄像机loc和rot
+	TraceStart = CamLoc;
+	dir = CamRot.Vector();
+	TraceEnd = CamLoc + (10000 * dir);
+
+	FCollisionQueryParams TraceParams (FName(TEXT("Actor")), true, this);
+	TraceParams.bReturnPhysicalMaterial = false;
+	TraceParams.AddIgnoredActor(this);
+	TraceParams.AddIgnoredActor(EquippedWeapon);
+	
+	DrawDebugLine(this->GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 5.0f);  
+	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd,ECC_Visibility, TraceParams);
+	
+	if (Cast<AActor>(HitResult.GetActor()))
+	{
+		GEngine->AddOnScreenDebugMessage(-1, 0.8f, FColor::Blue, HitResult.GetActor()->GetName());
+	}
+
+	// 播放开枪动画
+	if (FireSound != nullptr)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+	}
+	UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+	if (bIsOpenMirror)
+	{
+		if (FireAnimation_Aim != nullptr && AnimInstance != nullptr)
+		{
+			AnimInstance->Montage_Play(FireAnimation_Aim, 1.f);
+		}
+	}
+	else
+	{
+		if (FireAnimation_Hip!= nullptr && AnimInstance != nullptr)
+		{
+			AnimInstance->Montage_Play(FireAnimation_Hip, 1.f);
+		}
+	}
+
+	// 施加冲击力
+	if (HitResult.GetActor())
+	{
+		if (HitResult.GetActor()->IsRootComponentMovable())
+		{
+			UStaticMeshComponent* MeshComponent = Cast<UStaticMeshComponent>(HitResult.GetActor()->GetRootComponent());
+			MeshComponent->AddForce(dir*50000*MeshComponent->GetMass());
+		}
+	}
+	
+	FRotator effectRotator = UKismetMathLibrary::Conv_VectorToRotator(HitResult.Normal); // 旋转角度
+	
+	// 弹孔效果
+	ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(HitResult.Location, FRotator(0.f, 0.f, 0.f));
+	if (decal && BulletHoleMaterial)
+	{
+		decal->SetDecalMaterial(BulletHoleMaterial);
+		decal->SetLifeSpan(5.0f);
+		decal->GetDecal()->DecalSize = FVector(1.0f, 4.0f, 4.0f);
+		decal->SetActorRotation(effectRotator);
+		decal->GetDecal()->FadeScreenSize = 0.f;
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No decal spawned"));
+	}
+
+	// 粒子效果
+	if (BulletHitParticleSystem)
+	{
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletHitParticleSystem,HitResult.Location, effectRotator);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No ParticleSystem Spawned"));
+	}
+
+	// 通知更新UI
+	if (OnAmorNumerChangeDelegate.IsBound())
+		OnAmorNumerChangeDelegate.Broadcast();
+}
+
+void AHW2ByZHCharacter::ToggleOpenMirror()
+{
+	// 切换开镜状态
+	bIsOpenMirror = !bIsOpenMirror;
+	// 切换相机视角
+	FollowCamera2->SetFieldOfView(90.f+38.f - FollowCamera2->FieldOfView);
+}
+
+void AHW2ByZHCharacter::LeftClickReleasedDispatch()
+{
+	
 }

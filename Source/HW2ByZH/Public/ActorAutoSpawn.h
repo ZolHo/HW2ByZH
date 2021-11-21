@@ -19,6 +19,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	// UClass* SpawnEquipType;
 	TSubclassOf<AActor> SpawnEquipType;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Actor, meta = (AllowPrivateAccess = "true"))
+	class UChildActorComponent* ChildComp;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Component)
+	USceneComponent* RootSceneComponent;
 	
 protected:
 	// Called when the game starts or when spawned
