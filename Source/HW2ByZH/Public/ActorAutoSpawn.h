@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "ActorAutoSpawn.generated.h"
 
+// 用于自动生成蓝图中指定类型的actor，当创建的actor被销毁后会自动生成新的actor
 UCLASS()
 class HW2BYZH_API AActorAutoSpawn : public AActor
 {

@@ -6,6 +6,7 @@
 #include "EquipActor.h"
 #include "GunActor.h"
 #include "LeiActor.h"
+#include "Components/SplineComponent.h"
 #include "GameFramework/Character.h"
 #include "HW2ByZHCharacter.generated.h"
 
@@ -112,6 +113,9 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnAmorNumerChangeDelegate OnAmorNumerChangeDelegate;
 
+	UPROPERTY()
+	USplineComponent* ProjectileSplineComponent;
+
 protected:
 
 	// 战斗状态
@@ -170,6 +174,9 @@ protected:
 	// 切换开镜
 	void ToggleOpenMirror();
 
+	// 获取手雷抛出的方向和速度
+	FVector GetLeiVelocityForce();
+
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
@@ -191,4 +198,11 @@ public:
 	// 装弹函数
 	UFUNCTION(BlueprintCallable)
 	void ReBullet();
+
+private:
+	// tick函数
+	virtual void Tick(float DeltaSeconds) override;
+
+	// 是否未弹起左键，实现长按功能
+	bool bIsLeftPressed;
 };

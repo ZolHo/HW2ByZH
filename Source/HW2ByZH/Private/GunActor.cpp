@@ -12,7 +12,8 @@ AGunActor::AGunActor()
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 	WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Weapon"));
-	WeaponMesh = Cast<USkeletalMeshComponent, UMeshComponent>(WeaponMesh);
+	// WeaponMesh = Cast<USkeletalMeshComponent, UMeshComponent>(WeaponMesh);
+	RootComponent = WeaponMesh;
 	
 	// 设置骨骼
 	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshAssert(TEXT("SkeletalMesh'/Game/FPWeapon/Mesh/SK_FPGun.SK_FPGun'"));

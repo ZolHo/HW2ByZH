@@ -60,7 +60,7 @@ AHW2ByZHCharacter::AHW2ByZHCharacter()
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom2 = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom2"));
 	CameraBoom2->SetupAttachment(RootComponent);
-	CameraBoom2->SetRelativeLocation(FVector(0.f,40.f, 100.f));
+	CameraBoom2->SetRelativeLocation(FVector(0.f,40.f, 80.f));
 	CameraBoom2->TargetArmLength = 140.0f; // The camera follows at this distance behind the character	
 	CameraBoom2->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 	CameraBoom2->bInheritRoll = false;
@@ -126,10 +126,6 @@ void AHW2ByZHCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 
 void AHW2ByZHCharacter::Test()
 {
-	// SwitchFightState();
-	UE_LOG(LogTemp, Warning, TEXT("Test: "));
-
-	
 	
 }
 void AHW2ByZHCharacter::OnResetVR()
@@ -207,23 +203,29 @@ void AHW2ByZHCharacter::SwitchFightState(enum FightState ChangeFightState)
 	{
 		// 普通情况
 	case FightState::OutFight :
-		FollowCamera->ToggleActive();
-		FollowCamera2->ToggleActive();
+		// FollowCamera->ToggleActive();
+		// FollowCamera2->ToggleActive();
+		FollowCamera->Activate(true);
+		FollowCamera2->Deactivate();
 		this->bUseControllerRotationYaw = false;
 		GetCharacterMovement()->bOrientRotationToMovement = true;
 		break;
 		// 拿枪
 	case FightState::GUNMODE :
 		if (bIsOpenMirror) ToggleOpenMirror();  // 重置开镜状态
-		FollowCamera->ToggleActive();
-		FollowCamera2->ToggleActive();
+		// FollowCamera->ToggleActive();
+		// FollowCamera2->ToggleActive();
+		FollowCamera->Deactivate();
+		FollowCamera2->Activate(true);
 		this->bUseControllerRotationYaw = true;
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 		break;
 		// 拿雷
 	case FightState::LEIMODE :
-		FollowCamera->ToggleActive();
-		FollowCamera2->ToggleActive();
+		// FollowCamera->ToggleActive();
+		// FollowCamera2->ToggleActive();
+		FollowCamera->Deactivate();
+		FollowCamera2->Activate(true);
 		this->bUseControllerRotationYaw = true;
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 		break;
@@ -258,10 +260,15 @@ void AHW2ByZHCharacter::PickUpWeaponByOverlap()
 
 void AHW2ByZHCharacter::PickUpWeapon(AActor* Weapon)
 {
-	if (Weapon != nullptr && !IsValid(EquippedWeapon))
+	if (Weapon != nullptr )
 	{
+		if (IsValid(EquippedWeapon))
+		{
+			DestroyNowWeapon();
+		}
 		if (Weapon->GetClass()->IsChildOf(AEquipActor::StaticClass()))
 		{
+			
 			EquippedWeapon = Cast<AEquipActor>(Weapon);
 			// 如果是枪
 			if (Weapon->GetClass()->IsChildOf(AGunActor::StaticClass()))
@@ -286,8 +293,8 @@ void AHW2ByZHCharacter::PickUpWeapon(AActor* Weapon)
 				UE_LOG(LogTemp, Warning, TEXT("Cast faild"));
 			}
 
-			EquippedWeapon->HintTextRenderComponent->SetVisibility(false);
-			EquippedWeapon->BoxCollision->RemoveFromRoot();
+			EquippedWeapon->HintTextRenderComponent->DestroyComponent();
+			EquippedWeapon->BoxCollision->DestroyComponent();
 		}
 		
 	}
@@ -315,6 +322,7 @@ void AHW2ByZHCharacter::DestroyNowWeapon()
 
 void AHW2ByZHCharacter::LeftClickDispatch()
 {
+	bIsLeftPressed = true;
 	switch (NowFightState)
 	{
 	case FightState::OutFight:
@@ -347,10 +355,24 @@ void AHW2ByZHCharacter::RightClickDispatch()
 		break;
 	
 	case FightState::LEIMODE:
+		
+		FPredictProjectilePathParams predictParams;
+		predictParams.StartLocation = LeiWeapon->GetActorLocation();
+		predictParams.LaunchVelocity = GetLeiVelocityForce();
+		predictParams.DrawDebugType = EDrawDebugTrace::ForDuration;
+		predictParams.DrawDebugTime = 5.f;
+		FPredictProjectilePathResult predictResult;
+		UGameplayStatics::PredictProjectilePath(LeiWeapon, predictParams, predictResult);
+		// int i = 0;
+		// for (auto Temp_PathData: predictResult.PathData)
+		// {
+		// 	ProjectileSplineComponent->AddSplinePointAtIndex(Temp_PathData.Location, i++,ESplineCoordinateSpace::World);
+		// }
+		
 		break;
 		
-	default:
-		break;
+	// default:
+	// 	break;
 	}
 }
 
@@ -372,7 +394,7 @@ void AHW2ByZHCharacter::ReBullet()
 
 void AHW2ByZHCharacter::OnGunFire()
 {
-	// 射线检测
+	// 射线检测碰撞
 	Cast<AGunActor>(EquippedWeapon)->GunAmorNumber -= 1;
 	FHitResult HitResult(ForceInit);
 	FVector CamLoc, dir, TraceEnd, TraceStart;
@@ -433,6 +455,7 @@ void AHW2ByZHCharacter::OnGunFire()
 	ADecalActor* decal = GetWorld()->SpawnActor<ADecalActor>(HitResult.Location, FRotator(0.f, 0.f, 0.f));
 	if (decal && BulletHoleMaterial)
 	{
+		decal->AttachToActor(HitResult.GetActor(),FAttachmentTransformRules::KeepWorldTransform);
 		decal->SetDecalMaterial(BulletHoleMaterial);
 		decal->SetLifeSpan(5.0f);
 		decal->GetDecal()->DecalSize = FVector(1.0f, 4.0f, 4.0f);
@@ -447,7 +470,7 @@ void AHW2ByZHCharacter::OnGunFire()
 	// 粒子效果
 	if (BulletHitParticleSystem)
 	{
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletHitParticleSystem,HitResult.Location, effectRotator);
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BulletHitParticleSystem,HitResult.Location, effectRotator, FVector(0.5f, 0.5f, 0.5f));
 	}
 	else
 	{
@@ -464,10 +487,64 @@ void AHW2ByZHCharacter::ToggleOpenMirror()
 	// 切换开镜状态
 	bIsOpenMirror = !bIsOpenMirror;
 	// 切换相机视角
-	FollowCamera2->SetFieldOfView(90.f+38.f - FollowCamera2->FieldOfView);
+	FollowCamera2->SetFieldOfView(90.f+45.f - FollowCamera2->FieldOfView);
 }
 
 void AHW2ByZHCharacter::LeftClickReleasedDispatch()
 {
+	bIsLeftPressed = false;
+	switch (NowFightState)
+	{
+	case FightState::OutFight:
+		break;
+
+	case FightState::GUNMODE:
+		
+		break;
 	
+	case FightState::LEIMODE:
+		if (IsValid(LeiWeapon))
+		{
+			// 分离手雷
+			LeiWeapon->DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+			// LeiWeapon->RemoveFromRoot();
+			LeiWeapon->GetWeaponMesh()->SetSimulatePhysics(true);
+			LeiWeapon->GetWeaponMesh()->SetCollisionProfileName(TEXT("IgnoreOnlyPawn"));
+			LeiWeapon->GetWeaponMesh()->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+			
+			// 注释的是失败方案
+			// // LeiWeapon->ProjectileMovementComponent->Velocity = force;
+			// LeiWeapon->ProjectileMovementComponent->bSimulationEnabled = true;
+			// // LeiWeapon->ProjectileMovementComponent->InitializeComponent();
+			// LeiWeapon->GetWeaponMesh()->AddForce(force*100000*LeiWeapon->GetWeaponMesh()->GetMass());
+
+			LeiWeapon->GetWeaponMesh()->SetPhysicsLinearVelocity(GetLeiVelocityForce());
+			LeiWeapon->ReadyToBoom();
+
+			// 解除对手雷的控制
+			LeiWeapon = nullptr;
+			EquippedWeapon = nullptr;
+			SwitchFightState(FightState::OutFight);
+		}
+		break;
+		
+	default:
+		break;
+	}
+}
+
+void AHW2ByZHCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+}
+
+FVector AHW2ByZHCharacter::GetLeiVelocityForce()
+{
+	FVector CamLoc;
+	FRotator CamRot;
+	Controller->GetPlayerViewPoint(CamLoc, CamRot);
+	// 将抛射角度根据视角提高
+	FVector force = ( FVector(CamRot.Vector().X, CamRot.Vector().Y, 0.8f + CamRot.Vector().Z *0.5)).GetSafeNormal()* 800; 
+	return force;
 }
