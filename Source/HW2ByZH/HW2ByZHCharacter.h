@@ -76,17 +76,21 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category=Weapon)
 	TSet<AEquipActor*> WeaponWhichCanPickSet;
 	
-	/** AnimMontage to play each time we fire */
+	/** 开火动画 hip */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* FireAnimation_Hip;
 	
-	/** AnimMontage to play each time we fire */
+	/** 开火动画 瞄准*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	UAnimMontage* FireAnimation_Aim;
 
-	/** Sound to play each time we fire */
+	/** 开火声音 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
 	USoundBase* FireSound;
+
+	/** 换弹声音 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Gameplay)
+	USoundBase* RebulletSound;
 
 	// 枪类装备槽
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Weapon)
@@ -150,6 +154,7 @@ protected:
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 	
 	// 切换战斗态
+	UFUNCTION(BlueprintCallable)
 	void SwitchFightState(enum FightState ChangeFightState);
 
 	// 鼠标点击左键事件处理

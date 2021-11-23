@@ -382,6 +382,11 @@ void AHW2ByZHCharacter::ReBullet()
 	if (GunWeapon)
 	{
 		GunWeapon->GunReBullet();
+		// 换弹音乐
+		if (RebulletSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(GetWorld(), RebulletSound, this->GetActorLocation());
+		}
 		
 		if (OnAmorNumerChangeDelegate.IsBound())
 			OnAmorNumerChangeDelegate.Broadcast();
