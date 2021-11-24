@@ -116,7 +116,7 @@ void AHW2ByZHCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerI
 	PlayerInputComponent->BindAction("LeftClick", IE_Pressed,this, &AHW2ByZHCharacter::LeftClickDispatch);
 	PlayerInputComponent->BindAction("RightClick", IE_Pressed, this, &AHW2ByZHCharacter::RightClickDispatch);
 	PlayerInputComponent->BindAction("LeftClick", IE_Released, this, &AHW2ByZHCharacter::LeftClickReleasedDispatch);
-
+	PlayerInputComponent->BindAction("RightClick", IE_Released, this, &AHW2ByZHCharacter::RightClickReleasedDispatch);
 	// 绑定换弹函数
 	PlayerInputComponent->BindAction("ReBullet", IE_Pressed, this, &AHW2ByZHCharacter::ReBullet);
 
@@ -349,30 +349,15 @@ void AHW2ByZHCharacter::RightClickDispatch()
 	case FightState::OutFight:
 		break;
 
-	case FightState::GUNMODE:
-		ToggleOpenMirror();
+	case FightState::GUNMODE: // 枪 右键
+		ToggleOpenMirror(); // 开关镜
 		
 		break;
 	
-	case FightState::LEIMODE:
-		
-		GeneratePredictLine();
-		
-		// FPredictProjectilePathParams predictParams;
-		// predictParams.StartLocation = LeiWeapon->GetActorLocation();
-		// predictParams.LaunchVelocity = GetLeiVelocityForce();
-		// predictParams.DrawDebugType = EDrawDebugTrace::ForDuration;
-		// predictParams.DrawDebugTime = 5.f;
-		// FPredictProjectilePathResult predictResult;
-		// UGameplayStatics::PredictProjectilePath(LeiWeapon, predictParams, predictResult);
-		//
-		// // test
-		// int i = 0;
-		// for (auto Temp_PathData: predictResult.PathData)
-		// {
-		// 	ProjectileSplineComponent->AddSplinePointAtIndex(Temp_PathData.Location, i++,ESplineCoordinateSpace::World);
-		// }
-		//
+	case FightState::LEIMODE: // 手雷右键
+		// 在tick中开启弹道预测
+		bIsPredictProjectile = true;
+	
 		break;
 		
 	default:
@@ -545,6 +530,10 @@ void AHW2ByZHCharacter::LeftClickReleasedDispatch()
 void AHW2ByZHCharacter::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
+	if (bIsPredictProjectile && IsValid(LeiWeapon))
+	{
+		GeneratePredictLine();
+	}
 	
 }
 
@@ -556,4 +545,11 @@ FVector AHW2ByZHCharacter::GetLeiVelocityForce()
 	// 将抛射角度根据视角提高
 	FVector force = ( FVector(CamRot.Vector().X, CamRot.Vector().Y, 0.8f + CamRot.Vector().Z *0.5)).GetSafeNormal()* 800; 
 	return force;
+}
+
+// 需要清除剩余的spline mesh， 交给蓝图重载
+void AHW2ByZHCharacter::RightClickReleasedDispatch()
+{
+	// 松开右键关闭弹道预测
+	bIsPredictProjectile = false;
 }

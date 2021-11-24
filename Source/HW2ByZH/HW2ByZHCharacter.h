@@ -67,6 +67,10 @@ public:
 	// 是否开镜状态
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Fight)
 	bool bIsOpenMirror = false;
+	
+	// 判断是否开启tick中的弹道预测
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Weapon")
+	bool bIsPredictProjectile = false;
 
 	// 正在装备的武器
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
@@ -113,7 +117,7 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FChangeStateDelegate ChangeStateDelegate;
 
-	// 子弹变化
+	// 子弹变化事件
 	UPROPERTY(BlueprintAssignable)
 	FOnAmorNumerChangeDelegate OnAmorNumerChangeDelegate;
 
@@ -165,6 +169,9 @@ protected:
 
 	// 鼠标左键松开事件处理
 	void LeftClickReleasedDispatch();
+
+	// 鼠标右键松开事件处理
+	void RightClickReleasedDispatch();
 	
 	// 处理开枪效果
 	void OnGunFire();
@@ -215,4 +222,5 @@ private:
 
 	// 是否未弹起左键，实现长按功能
 	bool bIsLeftPressed;
+	
 };
