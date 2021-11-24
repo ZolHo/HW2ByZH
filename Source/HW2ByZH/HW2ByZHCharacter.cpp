@@ -404,7 +404,7 @@ void AHW2ByZHCharacter::OnGunFire()
 	TraceParams.AddIgnoredActor(this);
 	TraceParams.AddIgnoredActor(EquippedWeapon);
 	
-	DrawDebugLine(this->GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 5.0f);  
+	// DrawDebugLine(this->GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 5.0f);  
 	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd,ECC_Visibility, TraceParams);
 	
 	if (Cast<AActor>(HitResult.GetActor()))
@@ -438,8 +438,9 @@ void AHW2ByZHCharacter::OnGunFire()
 	{
 		if (HitResult.GetActor()->IsRootComponentMovable())
 		{
-			UStaticMeshComponent* MeshComponent = Cast<UStaticMeshComponent>(HitResult.GetActor()->GetRootComponent());
-			MeshComponent->AddForce(dir*50000*MeshComponent->GetMass());
+			UStaticMeshComponent* HitMeshComponent = Cast<UStaticMeshComponent>(HitResult.GetActor()->GetRootComponent());
+			if (HitMeshComponent->IsSimulatingPhysics())
+				HitMeshComponent->AddForce(dir*50000*HitMeshComponent->GetMass());
 		}
 	}
 	
