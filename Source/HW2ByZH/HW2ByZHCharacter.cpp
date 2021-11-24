@@ -224,8 +224,8 @@ void AHW2ByZHCharacter::SwitchFightState(enum FightState ChangeFightState)
 	case FightState::LEIMODE :
 		// FollowCamera->ToggleActive();
 		// FollowCamera2->ToggleActive();
-		FollowCamera->Deactivate();
-		FollowCamera2->Activate(true);
+		FollowCamera2->Deactivate();
+		FollowCamera->Activate(true);
 		this->bUseControllerRotationYaw = true;
 		GetCharacterMovement()->bOrientRotationToMovement = false;
 		break;
@@ -356,23 +356,27 @@ void AHW2ByZHCharacter::RightClickDispatch()
 	
 	case FightState::LEIMODE:
 		
-		FPredictProjectilePathParams predictParams;
-		predictParams.StartLocation = LeiWeapon->GetActorLocation();
-		predictParams.LaunchVelocity = GetLeiVelocityForce();
-		predictParams.DrawDebugType = EDrawDebugTrace::ForDuration;
-		predictParams.DrawDebugTime = 5.f;
-		FPredictProjectilePathResult predictResult;
-		UGameplayStatics::PredictProjectilePath(LeiWeapon, predictParams, predictResult);
+		GeneratePredictLine();
+		
+		// FPredictProjectilePathParams predictParams;
+		// predictParams.StartLocation = LeiWeapon->GetActorLocation();
+		// predictParams.LaunchVelocity = GetLeiVelocityForce();
+		// predictParams.DrawDebugType = EDrawDebugTrace::ForDuration;
+		// predictParams.DrawDebugTime = 5.f;
+		// FPredictProjectilePathResult predictResult;
+		// UGameplayStatics::PredictProjectilePath(LeiWeapon, predictParams, predictResult);
+		//
+		// // test
 		// int i = 0;
 		// for (auto Temp_PathData: predictResult.PathData)
 		// {
 		// 	ProjectileSplineComponent->AddSplinePointAtIndex(Temp_PathData.Location, i++,ESplineCoordinateSpace::World);
 		// }
-		
+		//
 		break;
 		
-	// default:
-	// 	break;
+	default:
+		break;
 	}
 }
 

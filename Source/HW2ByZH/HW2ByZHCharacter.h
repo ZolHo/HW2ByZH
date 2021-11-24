@@ -6,7 +6,7 @@
 #include "EquipActor.h"
 #include "GunActor.h"
 #include "LeiActor.h"
-#include "Components/SplineComponent.h"
+// #include "Components/SplineComponent.h"
 #include "GameFramework/Character.h"
 #include "HW2ByZHCharacter.generated.h"
 
@@ -117,8 +117,8 @@ public:
 	UPROPERTY(BlueprintAssignable)
 	FOnAmorNumerChangeDelegate OnAmorNumerChangeDelegate;
 
-	UPROPERTY()
-	USplineComponent* ProjectileSplineComponent;
+	// UPROPERTY()
+	// USplineComponent* ProjectileSplineComponent;
 
 protected:
 
@@ -180,6 +180,7 @@ protected:
 	void ToggleOpenMirror();
 
 	// 获取手雷抛出的方向和速度
+	UFUNCTION(BlueprintCallable, BlueprintPure)
 	FVector GetLeiVelocityForce();
 
 public:
@@ -203,6 +204,10 @@ public:
 	// 装弹函数
 	UFUNCTION(BlueprintCallable)
 	void ReBullet();
+
+	// 生成预测线，交给蓝图实现
+	UFUNCTION(BlueprintImplementableEvent)
+	void GeneratePredictLine();
 
 private:
 	// tick函数
