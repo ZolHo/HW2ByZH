@@ -72,6 +72,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Weapon")
 	bool bIsPredictProjectile = false;
 
+	// 人物正常行走速度
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Attributes")
+	float NormalWalkSpeed = 400;
 	// 正在装备的武器
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category=Weapon)
 	AEquipActor* EquippedWeapon;

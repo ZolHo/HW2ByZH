@@ -209,6 +209,7 @@ void AHW2ByZHCharacter::SwitchFightState(enum FightState ChangeFightState)
 		FollowCamera2->Deactivate();
 		this->bUseControllerRotationYaw = false;
 		GetCharacterMovement()->bOrientRotationToMovement = true;
+		GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
 		break;
 		// 拿枪
 	case FightState::GUNMODE :
@@ -219,6 +220,7 @@ void AHW2ByZHCharacter::SwitchFightState(enum FightState ChangeFightState)
 		FollowCamera2->Activate(true);
 		this->bUseControllerRotationYaw = true;
 		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
 		break;
 		// 拿雷
 	case FightState::LEIMODE :
@@ -228,6 +230,7 @@ void AHW2ByZHCharacter::SwitchFightState(enum FightState ChangeFightState)
 		FollowCamera->Activate(true);
 		this->bUseControllerRotationYaw = true;
 		GetCharacterMovement()->bOrientRotationToMovement = false;
+		GetCharacterMovement()->MaxWalkSpeed = NormalWalkSpeed;
 		break;
 	default:
 		break;
@@ -483,6 +486,7 @@ void AHW2ByZHCharacter::ToggleOpenMirror()
 	bIsOpenMirror = !bIsOpenMirror;
 	// 切换相机视角
 	FollowCamera2->SetFieldOfView(90.f+45.f - FollowCamera2->FieldOfView);
+	GetCharacterMovement()->MaxWalkSpeed = (NormalWalkSpeed + 200 - GetCharacterMovement()->MaxWalkSpeed);
 }
 
 void AHW2ByZHCharacter::LeftClickReleasedDispatch()
