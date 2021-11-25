@@ -337,7 +337,12 @@ void AHW2ByZHCharacter::LeftClickDispatch()
 		{
 			OnGunFire();
 		}
-		
+		else
+		{
+			// 自动换弹
+			UGameplayStatics::SpawnSound2D(GetWorld(), RebulletSound);
+			ReBullet();
+		}
 		break;
 	case FightState::LEIMODE:
 		break;
