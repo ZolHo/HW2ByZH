@@ -3,6 +3,7 @@
 #include "HW2ByZHCharacter.h"
 
 #include "AnimationEditorUtils.h"
+#include "CanBeGunHitInterface.h"
 #include "DrawDebugHelpers.h"
 #include "GunActor.h"
 #include "HeadMountedDisplayFunctionLibrary.h"
@@ -418,6 +419,12 @@ void AHW2ByZHCharacter::OnGunFire()
 	if (Cast<AActor>(HitResult.GetActor()))
 	{
 		GEngine->AddOnScreenDebugMessage(-1, 0.8f, FColor::Blue, HitResult.GetActor()->GetName());
+	}
+
+	// 对拥有CanBeGunHit接口的对象调用其接口函数
+	if (HitResult.GetActor() && HitResult.GetActor()->GetClass()->ImplementsInterface(UCanBeGunHitInterface::StaticClass()))
+	{
+		ICanBeGunHitInterface::Execute_WhenBeGunHit(HitResult.GetActor(), HitResult);
 	}
 
 	// 播放开枪动画
