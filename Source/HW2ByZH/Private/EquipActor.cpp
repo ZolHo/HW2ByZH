@@ -20,7 +20,8 @@ AEquipActor::AEquipActor()
 	HintTextRenderComponent->SetWorldSize(20.f);
 	HintTextRenderComponent->SetTextRenderColor(FColor::White);
 	HintTextRenderComponent->SetText(INVTEXT("Press F To Pick UP"));
-	HintTextRenderComponent->SetRelativeLocation(FVector(50, 50, 0));
+	HintTextRenderComponent->SetRelativeLocation(FVector(50, 0, 0));
+	HintTextRenderComponent->HorizontalAlignment = EHorizTextAligment::EHTA_Center;
 	
 	// BoxCollision
 	BoxCollision = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollison"));
