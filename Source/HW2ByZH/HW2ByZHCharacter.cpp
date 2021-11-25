@@ -442,8 +442,10 @@ void AHW2ByZHCharacter::OnGunFire()
 		if (HitResult.GetActor()->IsRootComponentMovable())
 		{
 			UStaticMeshComponent* HitMeshComponent = Cast<UStaticMeshComponent>(HitResult.GetActor()->GetRootComponent());
-			if (HitMeshComponent->IsSimulatingPhysics())
+			if (HitMeshComponent && HitMeshComponent->IsSimulatingPhysics())
 				HitMeshComponent->AddForce(dir*50000*HitMeshComponent->GetMass());
+			else
+				UE_LOG(LogTemp, Warning, TEXT("You Hit Nullptr or UnSimulatePhy"));
 		}
 	}
 	
@@ -485,7 +487,7 @@ void AHW2ByZHCharacter::ToggleOpenMirror()
 	// 切换开镜状态
 	bIsOpenMirror = !bIsOpenMirror;
 	// 切换相机视角
-	FollowCamera2->SetFieldOfView(90.f+45.f - FollowCamera2->FieldOfView);
+	FollowCamera2->SetFieldOfView(90.f+50.f - FollowCamera2->FieldOfView);
 	GetCharacterMovement()->MaxWalkSpeed = (NormalWalkSpeed + 200 - GetCharacterMovement()->MaxWalkSpeed);
 }
 
@@ -548,7 +550,7 @@ FVector AHW2ByZHCharacter::GetLeiVelocityForce()
 	FRotator CamRot;
 	Controller->GetPlayerViewPoint(CamLoc, CamRot);
 	// 将抛射角度根据视角提高
-	FVector force = ( FVector(CamRot.Vector().X, CamRot.Vector().Y, 0.8f + CamRot.Vector().Z *0.5)).GetSafeNormal()* 800; 
+	FVector force = ( FVector(CamRot.Vector().X, CamRot.Vector().Y, 0.6f + CamRot.Vector().Z *0.7)).GetSafeNormal()* 800; 
 	return force;
 }
 
