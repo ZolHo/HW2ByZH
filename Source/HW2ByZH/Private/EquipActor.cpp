@@ -49,15 +49,6 @@ void AEquipActor::Tick(float DeltaTime)
 
 }
 
-// void AEquipActor::BeginDestroy()
-// {
-// 	Super::BeginDestroy();
-// 	if (OnActorDestory.IsBound())
-// 	{
-// 		OnActorDestory.Execute();
-// 	}
-// }
-
 UMeshComponent* AEquipActor::GetWeaponMesh()
 {
 	return WeaponMesh;
@@ -67,27 +58,18 @@ void AEquipActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, "Overlay");
-	HintTextRenderComponent->SetVisibility(true);
 	// 维护附件武器集合
 	Cast<AHW2ByZHCharacter>(UGameplayStatics::GetPlayerPawn(this, 0))->WeaponWhichCanPickSet.Add(this);
-	// 需要进行代理时开启
-	// if (OnEnterScope.IsBound() && Cast<AHW2TPSCharacter>(OtherActor))
-	// {
-	// 	OnEnterScope.Broadcast(this);
-	// }
+	
+
 }
 
 void AEquipActor::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Yellow, "OverlapEnd");
-	HintTextRenderComponent->SetVisibility(false);
 	//维护附件武器集合
 	Cast<AHW2ByZHCharacter>(UGameplayStatics::GetPlayerPawn(this, 0))->WeaponWhichCanPickSet.Remove(this);
-	// 需要进行代理时开启
-	// if (OnQuitScope.IsBound() && Cast<AHW2TPSCharacter>(OtherActor))
-	// {
-	// 	OnQuitScope.Broadcast(this);
-	// }
+
 }
 
 

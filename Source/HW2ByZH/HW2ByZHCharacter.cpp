@@ -272,7 +272,6 @@ void AHW2ByZHCharacter::PickUpWeapon(AActor* Weapon)
 		}
 		if (Weapon->GetClass()->IsChildOf(AEquipActor::StaticClass()))
 		{
-			
 			EquippedWeapon = Cast<AEquipActor>(Weapon);
 			// 如果是枪
 			if (Weapon->GetClass()->IsChildOf(AGunActor::StaticClass()))
@@ -316,6 +315,7 @@ void AHW2ByZHCharacter::DestroyNowWeapon()
 		EquippedWeapon->Destroy();
 		// 退出战斗状态
 		SwitchFightState(FightState::OutFight);
+		WeaponWhichCanPickSet.Reset();
 	}
 	else
 	{

@@ -29,6 +29,7 @@ ALeiActor::ALeiActor()
 
 	// 自定义组件属性如碰撞体积，提示文本
 	BoxCollision->SetRelativeScale3D(FVector(2,2,2));
+	BoxCollision->SetVisibility(true);
 	BoxCollision->SetupAttachment(WeaponMesh);
 	HintTextRenderComponent->SetupAttachment(WeaponMesh);
 
