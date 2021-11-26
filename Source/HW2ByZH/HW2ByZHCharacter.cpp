@@ -257,7 +257,7 @@ void AHW2ByZHCharacter::PickUpWeaponByOverlap()
 	}
 	else
 	{
-		GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("There is No Weapon"));
+		// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, TEXT("There is No Weapon"));
 		UE_LOG(LogTemp, Warning, TEXT("There is No Weapon"));
 	}
 }
@@ -416,10 +416,10 @@ void AHW2ByZHCharacter::OnGunFire()
 	// DrawDebugLine(this->GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 5.0f);  
 	GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd,ECC_Visibility, TraceParams);
 	
-	if (Cast<AActor>(HitResult.GetActor()))
-	{
-		GEngine->AddOnScreenDebugMessage(-1, 0.8f, FColor::Blue, HitResult.GetActor()->GetName());
-	}
+	// if (Cast<AActor>(HitResult.GetActor()))
+	// {
+	// 	// GEngine->AddOnScreenDebugMessage(-1, 0.8f, FColor::Blue, HitResult.GetActor()->GetName());
+	// }
 
 	// 对拥有CanBeGunHit接口的对象调用其接口函数
 	if (HitResult.GetActor() && HitResult.GetActor()->GetClass()->ImplementsInterface(UCanBeGunHitInterface::StaticClass()))

@@ -60,7 +60,7 @@ void AEquipActor::OnOverlapBegin(UPrimitiveComponent* OverlappedComponent, AActo
 	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Red, "Overlay");
 	// 维护附件武器集合
 	Cast<AHW2ByZHCharacter>(UGameplayStatics::GetPlayerPawn(this, 0))->WeaponWhichCanPickSet.Add(this);
-	
+	HintTextRenderComponent->SetVisibility(true);
 
 }
 
@@ -69,7 +69,7 @@ void AEquipActor::OnOverlapEnd(UPrimitiveComponent* OverlappedComponent, AActor*
 	// GEngine->AddOnScreenDebugMessage(-1, 3, FColor::Yellow, "OverlapEnd");
 	//维护附件武器集合
 	Cast<AHW2ByZHCharacter>(UGameplayStatics::GetPlayerPawn(this, 0))->WeaponWhichCanPickSet.Remove(this);
-
+	HintTextRenderComponent->SetVisibility(false);
 }
 
 
